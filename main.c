@@ -114,11 +114,10 @@ int main(int argc, char **argv)
         }
     }
 
-    // Locating default key file
     FILE *keyfile = NULL;
-    keyfile = os_fopen(keypath.os_path, OS_MODE_READ);
     if (keypath.valid == VALIDITY_INVALID)
     {
+        // Locating default key file
         filepath_set(&keypath, "keys.dat");
         keyfile = os_fopen(keypath.os_path, OS_MODE_READ);
         if (keyfile == NULL)
@@ -137,6 +136,8 @@ int main(int argc, char **argv)
             keyfile = os_fopen(keypath.os_path, OS_MODE_READ);
         }
     }
+    else if (keypath.valid == VALIDITY_VALID)
+        keyfile = os_fopen(keypath.os_path, OS_MODE_READ);
 
     // Try to populate default keyfile.
     if (keyfile != NULL)
