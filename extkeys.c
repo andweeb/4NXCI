@@ -443,10 +443,6 @@ void extkeys_initialize_keyset(nca_keyset_t *keyset, FILE *f)
                     }
                 }
             }
-            if (!matched_key)
-            {
-                fprintf(stderr, "[WARN]: Failed to match key \"%s\", (value \"%s\")\n", key, value);
-            }
         }
     }
 }
