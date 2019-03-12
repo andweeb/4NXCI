@@ -13,7 +13,7 @@ all:
 .c.o:
 	$(CC) $(INCLUDE) -c $(CFLAGS) -o $@ $<
 
-4nxci: sha.o aes.o extkeys.o pki.o hfs0.o utils.o nsp.o nca.o cnmt.o xci.o main.o filepath.o ConvertUTF.o romfs.o
+4nxci: sha.o aes.o extkeys.o pki.o hfs0.o utils.o nsp.o nca.o cnmt.o xci.o main.o filepath.o ConvertUTF.o romfs.o rsa.o
 	$(CC) -o $@ $^ $(LDFLAGS) -L $(LIBDIR)
 
 aes.o: aes.h types.h
@@ -43,6 +43,8 @@ xci.o: xci.h types.h hfs0.h
 romfs.o: romfs.h nacp.h
 
 ConvertUTF.o: ConvertUTF.h
+
+rsa.o: rsa.h rsa_keys.h
 
 clean:
 	rm -f *.o 4nxci 4nxci.exe

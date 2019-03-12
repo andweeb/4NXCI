@@ -139,7 +139,7 @@ int main(int argc, char **argv)
     else if (keypath.valid == VALIDITY_VALID)
         keyfile = os_fopen(keypath.os_path, OS_MODE_READ);
 
-    // Try to populate default keyfile.
+    // Try to populate keyfile.
     if (keyfile != NULL)
     {
         printf("\nLoading '%s' keyset file\n", keypath.char_path);

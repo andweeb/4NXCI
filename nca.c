@@ -164,10 +164,13 @@ void nca_exefs_npdm_process(nca_ctx_t *ctx)
     uint64_t file_entry_table_size = 0;
     uint64_t meta_offset = 0;
     uint64_t acid_offset = 0;
+    uint64_t acid_pubkey_offset = 0;
     uint64_t raw_data_offset = 0;
     uint64_t file_raw_data_offset = 0;
     uint64_t block_start_offset = 0;
     uint64_t block_hash_table_offset = 0;
+    uint64_t block_hash_table_end_offset = 0;
+    uint64_t block_size = 0;
 
     nca_decrypt_key_area(ctx);
 
@@ -214,31 +217,53 @@ void nca_exefs_npdm_process(nca_ctx_t *ctx)
             nca_section_fseek(&ctx->section_contexts[0], meta_offset);
             nca_section_fread(&ctx->section_contexts[0], &npdm_header, sizeof(npdm_t));
 
-            // Mix some water with acid (Corrupt ACID sig)
+            // Patch acid pubkey and change it to self-generated pubkey
             acid_offset = meta_offset + npdm_header.acid_offset;
-            uint8_t acid_sig_byte = 0;
-            nca_section_fseek(&ctx->section_contexts[0], acid_offset);
-            nca_section_fread(&ctx->section_contexts[0], &acid_sig_byte, 1);
-            if (acid_sig_byte == 0xFF)
-                acid_sig_byte -= 0x01;
-            else
-                acid_sig_byte += 0x01;
-            nca_section_fwrite(&ctx->section_contexts[0], &acid_sig_byte, 0x01, acid_offset);
+            acid_pubkey_offset = acid_offset + 0x100;
+            nca_section_fseek(&ctx->section_contexts[0], acid_pubkey_offset);
+            nca_section_fwrite(&ctx->section_contexts[0], (unsigned char *)rsa_get_public_key(), 0x100, acid_pubkey_offset);
 
             // Calculate new block hash
-            block_hash_table_offset = (0x20 * ((acid_offset - ctx->header.fs_headers[0].pfs0_superblock.pfs0_offset) / ctx->header.fs_headers[0].pfs0_superblock.block_size)) + ctx->header.fs_headers[0].pfs0_superblock.hash_table_offset;
-            block_start_offset = (((acid_offset - ctx->header.fs_headers[0].pfs0_superblock.pfs0_offset) / ctx->header.fs_headers[0].pfs0_superblock.block_size) * ctx->header.fs_headers[0].pfs0_superblock.block_size) + ctx->header.fs_headers[0].pfs0_superblock.pfs0_offset;
-            unsigned char *block_data = (unsigned char *)malloc(ctx->header.fs_headers[0].pfs0_superblock.block_size);
+            block_hash_table_offset = (0x20 * ((acid_pubkey_offset - ctx->header.fs_headers[0].pfs0_superblock.pfs0_offset) / ctx->header.fs_headers[0].pfs0_superblock.block_size)) + ctx->header.fs_headers[0].pfs0_superblock.hash_table_offset;
+            block_hash_table_end_offset = (0x20 * ((acid_pubkey_offset + 0x100 - ctx->header.fs_headers[0].pfs0_superblock.pfs0_offset) / ctx->header.fs_headers[0].pfs0_superblock.block_size)) + ctx->header.fs_headers[0].pfs0_superblock.hash_table_offset;
+            block_start_offset = (((acid_pubkey_offset - ctx->header.fs_headers[0].pfs0_superblock.pfs0_offset) / ctx->header.fs_headers[0].pfs0_superblock.block_size) * ctx->header.fs_headers[0].pfs0_superblock.block_size) + ctx->header.fs_headers[0].pfs0_superblock.pfs0_offset;
+            // Make sure block doesn't pass pfs0
+            if (block_start_offset - ctx->header.fs_headers[0].pfs0_superblock.pfs0_offset + ctx->header.fs_headers[0].pfs0_superblock.block_size > ctx->header.fs_headers[0].pfs0_superblock.pfs0_size)
+                block_size = ctx->header.fs_headers[0].pfs0_superblock.pfs0_size - block_start_offset - ctx->header.fs_headers[0].pfs0_superblock.pfs0_offset;
+            else
+                block_size = ctx->header.fs_headers[0].pfs0_superblock.block_size;
+            unsigned char *block_data = (unsigned char *)malloc(block_size);
             unsigned char *block_hash = (unsigned char *)malloc(0x20);
             nca_section_fseek(&ctx->section_contexts[0], block_start_offset);
-            nca_section_fread(&ctx->section_contexts[0], block_data, ctx->header.fs_headers[0].pfs0_superblock.block_size);
+            nca_section_fread(&ctx->section_contexts[0], block_data, block_size);
             sha_ctx_t *pfs0_sha_ctx = new_sha_ctx(HASH_TYPE_SHA256, 0);
-            sha_update(pfs0_sha_ctx, block_data, ctx->header.fs_headers[0].pfs0_superblock.block_size);
+            sha_update(pfs0_sha_ctx, block_data, block_size);
             sha_get_hash(pfs0_sha_ctx, block_hash);
             nca_section_fwrite(&ctx->section_contexts[0], block_hash, 0x20, block_hash_table_offset);
             free(block_hash);
             free(block_data);
             free_sha_ctx(pfs0_sha_ctx);
+            // Make sure that 1 block covers all patched bytes, othervise recalculate another hash block
+            if (block_hash_table_offset != block_hash_table_end_offset)
+            {
+                block_start_offset = (((acid_pubkey_offset + 0x100 - ctx->header.fs_headers[0].pfs0_superblock.pfs0_offset) / ctx->header.fs_headers[0].pfs0_superblock.block_size) * ctx->header.fs_headers[0].pfs0_superblock.block_size) + ctx->header.fs_headers[0].pfs0_superblock.pfs0_offset;
+                if (block_start_offset - ctx->header.fs_headers[0].pfs0_superblock.pfs0_offset + ctx->header.fs_headers[0].pfs0_superblock.block_size > ctx->header.fs_headers[0].pfs0_superblock.pfs0_size)
+                    block_size = ctx->header.fs_headers[0].pfs0_superblock.pfs0_size - block_start_offset - ctx->header.fs_headers[0].pfs0_superblock.pfs0_offset;
+                else
+                    block_size = ctx->header.fs_headers[0].pfs0_superblock.block_size;
+
+                block_data = (unsigned char *)malloc(block_size);
+                block_hash = (unsigned char *)malloc(0x20);
+                nca_section_fseek(&ctx->section_contexts[0], block_start_offset);
+                nca_section_fread(&ctx->section_contexts[0], block_data, block_size);
+                pfs0_sha_ctx = new_sha_ctx(HASH_TYPE_SHA256, 0);
+                sha_update(pfs0_sha_ctx, block_data, block_size);
+                sha_get_hash(pfs0_sha_ctx, block_hash);
+                nca_section_fwrite(&ctx->section_contexts[0], block_hash, 0x20, block_hash_table_end_offset);
+                free(block_hash);
+                free(block_data);
+                free_sha_ctx(pfs0_sha_ctx);
+            }
 
             // Calculate PFS0 sueperblock hash
             sha_ctx_t *hash_table_ctx = new_sha_ctx(HASH_TYPE_SHA256, 0);
@@ -293,7 +318,7 @@ void nca_control_nacp_process(nca_ctx_t *ctx, nsp_ctx_t *nsp_ctx)
     ctx->section_contexts[0].file = ctx->file;
     ctx->section_contexts[0].crypt_type = CRYPT_CTR;
     ctx->section_contexts[0].header = &ctx->header.fs_headers[0];
-    
+
     // Calculate counter for section decryption
     uint64_t ofs = ctx->section_contexts[0].offset >> 4;
     for (unsigned int j = 0; j < 0x8; j++)
@@ -579,16 +604,19 @@ void nca_gamecard_process(nca_ctx_t *ctx, filepath_t *filepath, int index, cnmt_
     else
         cnmt_xml_ctx->contents[index].type = cnmt_get_content_type(0x00);
 
-    // Patch ACID sig if nca type = program
+    // Set distrbution type to "System"
+    ctx->header.distribution = 0;
+
+    // Patch ACID pubkey if nca type = program and sign nca sig 2
     if (content_type == 0) // Program nca
+    {
         nca_exefs_npdm_process(ctx);
+        rsa_sign(&ctx->header.magic, 0x200, (unsigned char *)ctx->header.npdm_key_sig, 0x100);
+    }
     else if (content_type == 1) // Meta nca
         nca_cnmt_process(ctx, cnmt_ctx);
     else if (content_type == 2 && ctx->tool_ctx->settings.titlename == 1) // Control nca
         nca_control_nacp_process(ctx, nsp_ctx);
-
-    // Set distrbution type to "System"
-    ctx->header.distribution = 0;
 
     // Re-encrypt header
     nca_encrypt_header(ctx);

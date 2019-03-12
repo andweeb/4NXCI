@@ -1,3 +1,9 @@
+v4.00
+4NXCI now patches acid public key and signs nca header (signature 2)
+Enhanced NPDM patching
+Removed key warning message
+Fixed a bug cause loading a file with empty filepath when keyset file is not specified
+
 v3.06:
 Added keys.txt, keys.ini and prod.keys as default locations for loading keyset file
 Removed stdout and stderr buffer
