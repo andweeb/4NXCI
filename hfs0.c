@@ -43,7 +43,6 @@ void hfs0_process(hfs0_ctx_t *ctx) {
         }
         cur_ofs += cur_file->size;
     }
-    hfs0_save(ctx);
 }
 
 int hfs0_saved_nca_process(filepath_t *filepath, nxci_ctx_t *tool)
@@ -86,17 +85,5 @@ void hfs0_save_file(hfs0_ctx_t *ctx, uint32_t i, filepath_t *dirpath) {
     if (!hfs0_saved_nca_process(&filepath,ctx->tool_ctx))
     {
         exit(EXIT_FAILURE);
-    }
-}
-
-
-void hfs0_save(hfs0_ctx_t *ctx) {
-    /* Extract to directory. */
-    filepath_t *dirpath = NULL;
-    if (dirpath != NULL && dirpath->valid == VALIDITY_VALID) {
-        os_makedir(dirpath->os_path);
-        for (uint32_t i = 0; i < ctx->header->num_files; i++) {
-            hfs0_save_file(ctx, i, dirpath);
-        }
     }
 }
