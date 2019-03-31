@@ -1,8 +1,12 @@
+v4.01
+Fixed a bug cause broken nsps when using --keepncaid option
+Fixed a minor bug in opening XCI with long filepath
+
 v4.00
 4NXCI now patches acid public key and signs nca header (signature 2)
 Enhanced NPDM patching
 Removed key warning message
-Fixed a bug cause loading a file with empty filepath when keyset file is not specified
+Fixed a bug cause loading a file with an empty filepath when keyset file is not specified
 
 v3.06:
 Added keys.txt, keys.ini and prod.keys as default locations for loading keyset file
@@ -16,7 +20,7 @@ Fixed log sync
 
 v3.05
 Fixed support for XCIs with non-title crypto updates (Custom XCIs)
-Fixed a bug cause temp folder doesn't get deleted after conversion is done when xci contains update
+Fixed a bug cause temp folder not to get deleted after conversion is done when xci contains an update
 4NXCI-GUI:
 Removed read only from xci, output and keys fields.
 Used tabIndex property to allow proper tab browsing in order.
