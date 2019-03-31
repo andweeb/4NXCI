@@ -665,11 +665,18 @@ void nca_gamecard_process(nca_ctx_t *ctx, filepath_t *filepath, int index, cnmt_
     char *hash_hex = (char *)calloc(1, 65);
     hexBinaryString(hash_result, 32, hash_hex, 65);
 
-    // Set hash and id for xml meta, id = first 16 bytes of hash
+    // Set hash and id for xml meta, id = first 16 bytes of hash if keepncaid != 1
     strncpy(cnmt_xml_ctx->contents[index].hash, hash_hex, 64);
     cnmt_xml_ctx->contents[index].hash[64] = '\0';
     if (content_type == 1 && ctx->tool_ctx->settings.keepncaid == 1)
         strncpy(cnmt_xml_ctx->contents[index].id, basename(cnmt_ctx->meta_filepath.char_path), 32);
+    else if (ctx->tool_ctx->settings.keepncaid == 1)
+    {
+        char *ncaid = (char *)calloc(1, 33);
+        hexBinaryString(cnmt_ctx->cnmt_content_records[index].ncaid, 16, ncaid, 33);
+        strncpy(cnmt_xml_ctx->contents[index].id, ncaid, 32);
+        free(ncaid);
+    }
     else
         strncpy(cnmt_xml_ctx->contents[index].id, hash_hex, 32);
     cnmt_xml_ctx->contents[index].id[32] = '\0';
