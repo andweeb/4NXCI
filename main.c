@@ -155,9 +155,9 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    // Copy input file
+    // Copy input filepath
     if (optind == argc - 1)
-        strncpy(input_name, argv[optind], sizeof(input_name));
+        strncpy(input_name, argv[optind], sizeof(input_name) - 1);
     else if ((optind < argc) || (argc == 1))
         usage();
 
