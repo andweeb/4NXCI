@@ -14,16 +14,22 @@ typedef struct {
     unsigned char secure_boot_key[0x10];                 /* Secure boot key for use in key derivation. NOTE: CONSOLE UNIQUE. */
     unsigned char tsec_key[0x10];                        /* TSEC key for use in key derivation. NOTE: CONSOLE UNIQUE. */
     unsigned char keyblob_keys[0x20][0x10];              /* Actual keys used to decrypt keyblobs. NOTE: CONSOLE UNIQUE.*/
-    unsigned char keyblob_mac_keys[0x20][0x10];          /* Keys used to validate keyblobs. NOTE: CONSOLE UNIQUE. */ 
-    unsigned char encrypted_keyblobs[0x20][0xB0];        /* Actual encrypted keyblobs (EKS). NOTE: CONSOLE UNIQUE. */ 
-    unsigned char keyblobs[0x20][0x90];                  /* Actual decrypted keyblobs (EKS). */ 
+    unsigned char keyblob_mac_keys[0x20][0x10];          /* Keys used to validate keyblobs. NOTE: CONSOLE UNIQUE. */
+    unsigned char encrypted_keyblobs[0x20][0xB0];        /* Actual encrypted keyblobs (EKS). NOTE: CONSOLE UNIQUE. */
+    unsigned char keyblobs[0x20][0x90];                  /* Actual decrypted keyblobs (EKS). */
     unsigned char keyblob_key_sources[0x20][0x10];       /* Seeds for keyblob keys. */
     unsigned char keyblob_mac_key_source[0x10];          /* Seed for keyblob MAC key derivation. */
+    unsigned char tsec_root_kek[0x10];                   /* Used to generate TSEC root keys. */
+    unsigned char package1_mac_kek[0x10];                /* Used to generate Package1 MAC keys. */
+    unsigned char package1_kek[0x10];                    /* Used to generate Package1 keys. */
+    unsigned char tsec_auth_signatures[0x20][0x10];      /* Auth signatures, seeds for tsec root key/package1 mac kek/package1 key on 6.2.0+. */
+    unsigned char tsec_root_keys[0x20][0x10];            /* Key for master kek decryption, from TSEC firmware on 6.2.0+. */
     unsigned char tsec_root_key[0x10];                   /* Seed for master kek decryption, from TSEC firmware on 6.2.0+. */
     unsigned char master_kek_sources[0x20][0x10];        /* Seeds for firmware master keks. */
     unsigned char master_keks[0x20][0x10];               /* Firmware master keks, stored in keyblob prior to 6.2.0. */
     unsigned char master_key_source[0x10];               /* Seed for master key derivation. */
     unsigned char master_keys[0x20][0x10];               /* Firmware master keys. */
+    unsigned char package1_mac_keys[0x20][0x10];         /* Package1 MAC keys. */
     unsigned char package1_keys[0x20][0x10];             /* Package1 keys. */
     unsigned char package2_keys[0x20][0x10];             /* Package2 keys. */
     unsigned char package2_key_source[0x10];             /* Seed for Package2 key. */
@@ -43,9 +49,9 @@ typedef struct {
     unsigned char titlekeks[0x20][0x10];                 /* Title key encryption keys. */
     unsigned char key_area_keys[0x20][3][0x10];          /* Key area encryption keys. */
     unsigned char sd_card_keys[2][0x20];
-    unsigned char nca_hdr_fixed_key_modulus[0x100];      /* NCA header fixed key RSA pubk. */
-    unsigned char acid_fixed_key_modulus[0x100];         /* ACID fixed key RSA pubk. */
-    unsigned char package2_fixed_key_modulus[0x100];     /* Package2 Header RSA pubk. */
+    unsigned char nca_hdr_fixed_key_modulus[0x100];  /* NCA header fixed key RSA pubk. */
+    unsigned char acid_fixed_key_modulus[0x100];     /* ACID fixed key RSA pubk. */
+unsigned char package2_fixed_key_modulus[0x100]; /* Package2 Header RSA pubk. */
 } nca_keyset_t;
 
 typedef struct {
@@ -61,7 +67,7 @@ typedef struct {
     uint8_t keepncaid;
 } nxci_settings_t;
 
-enum hactool_file_type
+enum nxci_file_type
 {
     FILETYPE_NCA,
     FILETYPE_PFS0,
@@ -83,7 +89,7 @@ enum hactool_file_type
 struct nca_ctx; /* This will get re-defined by nca.h. */
 
 typedef struct {
-    enum hactool_file_type file_type;
+    enum nxci_file_type file_type;
     FILE *file;
     FILE *base_file;
     nxci_basefile_t base_file_type;

@@ -1,5 +1,5 @@
-#ifndef NXCI_CNMT_H_
-#define NXCI_CNMT_H_
+#ifndef NXCI_CNMT_H
+#define NXCI_CNMT_H
 
 #include <stdint.h>
 #include "nsp.h"

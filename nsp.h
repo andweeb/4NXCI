@@ -1,5 +1,5 @@
-#ifndef NXCI_NSP_H_
-#define NXCI_NSP_H_
+#ifndef NXCI_NSP_H
+#define NXCI_NSP_H
 
 #include <inttypes.h>
 #include "filepath.h"
