@@ -1,3 +1,6 @@
+v4.02
+Added support for keygeneration 8 (Firmware 7.0.0+)
+
 v4.01
 Fixed a bug cause broken nsps when using --keepncaid option
 Fixed a minor bug in opening XCI with long filepath
