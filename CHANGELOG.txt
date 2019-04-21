@@ -1,3 +1,6 @@
+v4.03
+Fixed a bug in file path
+
 v4.02
 Added support for keygeneration 8 (Firmware 7.0.0+)
 
