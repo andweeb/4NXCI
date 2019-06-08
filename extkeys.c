@@ -202,7 +202,7 @@ void parse_hex_key(unsigned char *key, const char *hex, unsigned int len)
     }
 }
 
-void extkeys_initialize_keyset(nca_keyset_t *keyset, FILE *f)
+void extkeys_initialize_keyset(nxci_keyset_t *keyset, FILE *f)
 {
     char *key, *value;
     int ret;

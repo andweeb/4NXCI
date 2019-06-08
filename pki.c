@@ -3,7 +3,7 @@
 #include "aes.h"
 #include "pki.h"
 
-static const nca_keyset_t nca_keys_retail = {
+static const nxci_keyset_t nca_keys_retail = {
     .nca_hdr_fixed_key_modulus = {/* Fixed RSA key used to validate NCA signature 0. */
                                   0xBF, 0xBE, 0x40, 0x6C, 0xF4, 0xA7, 0x80, 0xE9, 0xF0, 0x7D, 0x0C, 0x99, 0x61, 0x1D, 0x77, 0x2F,
                                   0x96, 0xBC, 0x4B, 0x9E, 0x58, 0x38, 0x1B, 0x03, 0xAB, 0xB1, 0x75, 0x49, 0x9F, 0x2B, 0x4D, 0x58,
@@ -49,7 +49,7 @@ static void generate_kek(unsigned char *dst, const unsigned char *src, const uns
         memcpy(dst, src_kek, 0x10);
     }
 }
-void pki_derive_keys(nca_keyset_t *keyset) {
+void pki_derive_keys(nxci_keyset_t *keyset) {
     unsigned char zeroes[0x100];
     unsigned char cmac[0x10];
     memset(zeroes, 0, 0x100);
@@ -222,7 +222,7 @@ void pki_derive_keys(nca_keyset_t *keyset) {
 
 }
 
-void pki_initialize_keyset(nca_keyset_t *keyset)
+void pki_initialize_keyset(nxci_keyset_t *keyset)
 {
 
     memcpy(keyset, &nca_keys_retail, sizeof(*keyset));

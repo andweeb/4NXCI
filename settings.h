@@ -52,7 +52,7 @@ typedef struct {
     unsigned char nca_hdr_fixed_key_modulus[0x100];  /* NCA header fixed key RSA pubk. */
     unsigned char acid_fixed_key_modulus[0x100];     /* ACID fixed key RSA pubk. */
 unsigned char package2_fixed_key_modulus[0x100]; /* Package2 Header RSA pubk. */
-} nca_keyset_t;
+} nxci_keyset_t;
 
 typedef struct {
     int enabled;
@@ -60,7 +60,7 @@ typedef struct {
 } override_filepath_t;
 
 typedef struct {
-    nca_keyset_t keyset;
+    nxci_keyset_t keyset;
     filepath_t secure_dir_path;
     filepath_t out_dir_path;
     uint8_t titlename;
