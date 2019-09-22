@@ -14,7 +14,7 @@ all:
 	$(CC) $(INCLUDE) -c $(CFLAGS) -o $@ $<
 
 4nxci: sha.o aes.o extkeys.o pki.o hfs0.o utils.o nsp.o nca.o cnmt.o xci.o main.o filepath.o ConvertUTF.o romfs.o rsa.o
-	$(CC) -o $@ $^ $(LDFLAGS) -L $(LIBDIR)
+	$(CC) -o $(OUTPUT) $(LDFLAGS) -L $(LIBDIR)
 
 aes.o: aes.h types.h
 
